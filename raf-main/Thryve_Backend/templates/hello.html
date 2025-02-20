@@ -1,0 +1,43 @@
+{% extends "home.html" %}
+
+{% block title %}
+<title>Hello Page</title>
+{% endblock title %}
+
+{% block body %}
+<h1>Hello, World!!!!</h1>
+
+<!-- Form for taking user input -->
+<form method="POST" action="/hello">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" name="dob" required><br><br>
+
+    <label for="diagnosis_code">Search Diagnosis Code:</label>
+    <input type="text" id="diagnosis_code" name="diagnosis_code" placeholder="Enter diagnosis code"><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+{% if name and dob and diagnosis_code %}
+    <h2>Submitted Data</h2>
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Date of Birth:</strong> {{ dob }}</p>
+    <p><strong>Diagnosis Code Search:</strong> {{ diagnosis_code }}</p>
+
+    <!-- Display matching diagnosis codes with description -->
+    <h3>Matching Diagnosis Codes</h3>
+    {% if matching_codes %}
+        <ul>
+        {% for code, description in matching_codes %}
+            <li><strong>{{ code }}:</strong> {{ description }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No matching diagnosis codes found.</p>
+    {% endif %}
+{% endif %}
+
+{% endblock body %}

@@ -1,0 +1,48 @@
+<app-navbar></app-navbar>
+
+<div class="flex justify-center h-screen items-center p-4 bg-gray-100">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="border w-[400px] p-6 shadow-lg bg-white rounded-md">
+        <h2 class="text-lg font-semibold text-center text-gray-700">Admin Login</h2>
+
+
+        <div class="mt-4">
+            <label class="font-medium text-sm text-gray-600">Email</label>
+            <input formControlName="email" type="email"
+                class="border p-2 w-full border-gray-300 mt-1 rounded focus:outline-none  text-sm" />
+            <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                <p *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</p>
+                <p *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address</p>
+            </div>
+        </div>
+
+
+        <div class="mt-4">
+            <label class="font-medium text-sm text-gray-600">Password</label>
+            <input formControlName="password" type="password"
+                class="border p-2 w-full border-gray-300 mt-1 rounded focus:outline-none text-sm" />
+            <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                <p *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</p>
+                <p *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</p>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <button type="submit" [disabled]="loginForm.invalid"
+                class="w-full py-2 text-white font-medium rounded-md transition"
+                [ngClass]="loginForm.invalid ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'">
+                Login
+            </button>
+        </div>
+
+
+        <p *ngIf="errorMessage" class="text-red-500 text-sm mt-2 text-center">{{ errorMessage }}</p>
+
+
+        <p class="text-center text-sm mt-2">
+            Don't have an account?
+            <span class="text-red-500 cursor-pointer">Sign up</span>
+        </p>
+    </form>
+</div>

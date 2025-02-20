@@ -1,0 +1,277 @@
+<app-navbar></app-navbar>
+
+<div class="container mx-auto px-4">
+  <div class="mt-5 flex justify-center items-center">
+    <form [formGroup]="riskScoreForm" (ngSubmit)="onSubmit()" class="bg-gray-50 border p-6 border-[#000000] rounded-lg w-full max-w-3xl">
+      <div class="text-center">
+        <h1 class="font-semibold text-2xl text-[#6666CC]">RAF Score Calculator</h1>
+      </div>
+
+      <!-- Form Fields Section -->
+      <div class="grid md:grid-cols-2 gap-8 mt-14">
+        <div>
+          <label class="font-semibold text-sm text-gray-600">Gender</label>
+          <select formControlName="gender"
+            class="w-full border font-semibold p-2 mt-1 border-gray-400 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-[#6666CC]">
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+          <div *ngIf="riskScoreForm.get('gender')?.touched && riskScoreForm.get('gender')?.invalid"
+            class="text-red-500 text-sm mt-1">
+            <p *ngIf="riskScoreForm.get('gender')?.errors?.['required']">Gender is required</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold text-sm text-gray-600">Age</label>
+          <input type="number" formControlName="age"
+            class="w-full border font-semibold p-2 mt-1 border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6666CC] text-sm rounded-md"
+            placeholder="Enter age" />
+          <div *ngIf="riskScoreForm.get('age')?.touched && riskScoreForm.get('age')?.invalid"
+            class="text-red-500 text-sm mt-1">
+            <p *ngIf="riskScoreForm.get('age')?.errors?.['required']">Age is required</p>
+            <p *ngIf="riskScoreForm.get('age')?.errors?.['min']">Age must be a positive number</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold text-sm text-gray-600">Risk Factor</label>
+          <select formControlName="eligibility"
+            class="w-full border font-semibold p-2 mt-1 border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6666CC] text-sm rounded-md">
+            <option value="">Select</option>
+            <option value="CFA">CFA: Community Full Benefit Dual Aged</option>
+            <option value="SNPNE">SNPNE: SNP NE</option>
+            <option value="CPA">CPA: Community Partial Benefit Dual Aged</option>
+            <option value="INS">INS: Long Term Institutional</option>
+            <option value="NE">NE: New Enrollee</option>
+            <option value="CPD">CPD: Community Partial Benefit Dual Disabled</option>
+            <option value="CNA">CNA: Community NonDual Aged</option>
+            <option value="CND">CND: Community NonDual Disabled</option>
+            <option value="CFD">CFD: Community Full Benefit Dual Disabled</option>
+          </select>
+          <div *ngIf="riskScoreForm.get('eligibility')?.touched && riskScoreForm.get('eligibility')?.invalid"
+            class="text-red-500 text-sm mt-1">
+            <p *ngIf="riskScoreForm.get('eligibility')?.errors?.['required']">Eligibility is required</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold text-sm text-gray-600">HCC Model</label>
+          <select formControlName="model_name"
+            class="w-full border font-semibold p-2 mt-1 border-gray-400 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-[#6666CC]">
+            <option value="">Select model</option>
+            <option value="CMS-HCC V22">CMS-HCC V22(2017)</option>
+            <option value="CMS-HCC V23">CMS-HCC V23(2018)</option>
+            <option value="CMS-HCC V24">CMS-HCC V24(2023)</option>
+            <option value="CMS-HCC V28">CMS-HCC V28(2024)</option>
+          </select>
+          <div *ngIf="riskScoreForm.get('model_name')?.touched && riskScoreForm.get('model_name')?.invalid"
+            class="text-red-500 text-sm mt-1">
+            <p *ngIf="riskScoreForm.get('model_name')?.errors?.['required']">Model selection is required</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ICD-10 Codes Section -->
+      <div class="mt-10">
+        <label class="font-semibold text-sm text-gray-600">ICD-10 Codes</label>
+        <div class="relative">
+          <input type="text" formControlName="diagnosis_code"
+            placeholder="Search for diagnosis"
+            class="w-full border border-gray-400 p-2 focus:outline-none focus:ring-2 focus:ring-[#6666CC] text-sm rounded-md"
+            (input)="onDiagnosisCodeInputChange()" />
+        
+          <!-- Loading Indicator -->
+          <div *ngIf="loading" class="absolute top-2 right-2">
+            <span class="animate-spin">🔄</span>
+          </div>
+        
+          <div *ngIf="icdSuggestions.length > 0" class="suggestions-box">
+            <ul>
+              <li *ngFor="let suggestion of icdSuggestions"
+                class="p-2 hover:bg-gray-100 cursor-pointer"
+                (click)="selectIcdCode(suggestion.code, suggestion.description)">
+                {{ suggestion.code }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+
+        <div *ngIf="riskScoreForm.get('diagnosis_code')?.touched && riskScoreForm.get('diagnosis_code')?.invalid"
+          class="text-red-500 text-sm mt-1">
+          <p *ngIf="riskScoreForm.get('diagnosis_code')?.errors?.['required']">Diagnosis code is required</p>
+        </div>
+
+        <div *ngIf="errorFetchingSuggestions" class="text-red-500 text-sm mt-2">
+          Error fetching suggestions. Please try again later.
+        </div>
+
+        <div *ngIf="addedDiagnosisCodes.length > 0" class="icd-box">
+          <span *ngFor="let code of addedDiagnosisCodes; let i = index"
+            class="icd-item"
+            (mouseenter)="onMouseEnter(code)"
+            (mouseleave)="onMouseLeave()">
+            {{ code }}
+            <button class="remove-btn" (click)="removeDiagnosisCode(i)">✖</button>
+
+            <div *ngIf="hoveredCode === code" class="tooltip">
+              <p><strong>RAF Score:</strong> {{ getRafScore(code) }}</p>
+              <p><strong>Description:</strong> {{ getDiagnosisDescription(code) }}</p>
+            </div>
+          </span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-10">
+        <button [disabled]="riskScoreForm.invalid" type="submit"
+          [ngClass]="{
+            'bg-[#6666CC] hover:bg-[#6666f3]': !riskScoreForm.invalid,
+            'bg-[#8888e6] cursor-not-allowed': riskScoreForm.invalid
+          }"
+          class="w-full text-white p-2 px-4 rounded-md font-semibold text-sm transition-colors duration-200">
+          Get Risk Score
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results Section -->
+  <div class="mt-7 max-w-[1000px] mx-auto">
+    <app-swipeable-nav>
+      <!-- Summary Section -->
+        <div section="summary" class="flex gap-10">
+          <div>
+            <div class="bg-white rounded-lg shadow-md">
+              <p class="bg-[#6666CC] text-white font-semibold text-center p-3 rounded-t-lg">Summary</p>
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <tbody class="text-sm">
+                    <tr>
+                      <td class="border p-3 font-medium text-gray-600">Demographic Risk Score</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">
+                        {{ demographicRiskFactor | number: '1.3-3' }}
+                      </td>
+                    </tr>
+    
+                    <!-- Present Conditions -->
+                    <tr>
+                      <td class="pl-8 border p-3 font-medium text-gray-600">- Present Condition</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800"></td>
+                    </tr>
+                    <tr *ngFor="let result of results">
+                      <td class="pl-16 border p-3 font-medium text-gray-600">{{ result.HCC_Code }}</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">{{ result.Risk_Score }}</td>
+                    </tr>
+    
+                    <!-- Potential Conditions -->
+                    <tr>
+                      <td class="pl-8 border p-3 font-medium text-gray-600">- Potential Condition</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800"></td>
+                    </tr>
+                    <tr *ngFor="let condition of acceptedPotentialConditions">
+                      <td class="pl-16 border p-3 font-medium text-gray-600">{{ condition.hccCode }}</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">{{ condition.rafScore }}</td>
+                    </tr>
+    
+                    <!-- Total Scores -->
+                    <tr>
+                      <td class="border p-3 font-medium text-gray-600">HCC Risk Score</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">
+                        {{getTotalRafScore() | number:'1.3-3'}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="border p-3 font-medium text-gray-600">Potential Risk Score</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">
+                        {{getTotalPotentialRafScore() | number:'1.3-3'}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="border p-3 font-medium text-gray-600">Total Risk Score</td>
+                      <td class="border p-3 text-right font-semibold text-gray-800">
+                        {{getFinalTotalScore() | number:'1.3-3'}}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+          </div>
+            <!-- HCC Table Section -->
+            <div>
+              <div class="rounded-md shadow-md overflow-x-auto">
+                <table class="w-full">
+                <thead>
+                  <tr class="bg-[#6666CC] text-white text-sm">
+                    <th class="p-3 text-left">Diag Code</th>
+                    <th class="p-3 text-left">Diag Description</th>
+                    <th class="p-3 text-left">HCC Code</th>
+                    <th class="p-3 text-left">HCC Description</th>
+                    <th class="p-3 text-left">RAF Score</th>
+                  </tr>
+                </thead>
+                <tbody class="text-sm">
+                  <tr *ngFor="let result of results">
+                    <td class="border p-4 text-gray-800">{{ result.DIAG }}</td>
+                    <td class="border p-4 text-gray-800">{{ result.ICD_Description }}</td>
+                    <td class="border p-4 text-gray-800">{{ result.HCC_Code }}</td>
+                    <td class="border p-4 text-gray-800">{{ result.HCC_Description }}</td>
+                    <td class="border p-4 text-gray-800">{{ result.Risk_Score }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      <!-- Potential Conditions Section -->
+      <div section="potential-conditions">
+        <div class="flex flex-col items-center">
+          <h2 class="font-semibold text-2xl text-[#6666CC] my-4">Potential Conditions</h2>
+          <div class="rounded-md shadow-md overflow-x-auto w-full" *ngIf="potentialConditions.length > 0">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-[#6666CC] text-white text-sm">
+                  <th class="p-3 text-left">Dx Code</th>
+                  <th class="p-3 text-left">Description</th>
+                  <th class="p-3 text-left">HCC Code</th>
+                  <th class="p-3 text-left">RAF Score</th>
+                  <th class="p-3 text-left">Probability</th>
+                  <th class="p-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm">
+                <tr *ngFor="let condition of potentialConditions">
+                  <td class="border p-4 text-gray-800">{{condition.diagnosisCode}}</td>
+                  <td class="border p-4 text-gray-800">{{condition.description}}</td>
+                  <td class="border p-4 text-gray-800">{{condition.hccCode}}</td>
+                  <td class="border p-4 text-gray-800">{{condition.rafScore}}</td>
+                  <td class="border p-4 text-gray-800">{{condition.probability}}%</td>
+                  <td class="border p-4">
+                    <div class="flex items-center gap-2">
+                      <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                        (click)="onPotentialConditionAccept(condition)">
+                        Accept
+                      </button>
+                      <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                        (click)="onPotentialConditionReject(condition)">
+                        Reject
+                    </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="potentialConditions.length === 0" class="text-gray-500 text-sm mt-4">
+        No potential conditions found for the current diagnoses.
+      </div>
+    </div>
+  </div>
+</app-swipeable-nav>
+</div>
+</div>  

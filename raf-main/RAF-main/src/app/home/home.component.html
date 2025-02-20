@@ -1,0 +1,103 @@
+<div  >
+    <app-navbar></app-navbar>
+ 
+    <div class="container mx-auto px-4 py-12">
+      <!-- Header Section -->
+      <div class="text-center mb-12">
+        <h1 class="text-xl md:text-3xl font-bold  mb-4">
+          Risk Adjustment Factor (RAF) Calculator
+        </h1>
+        <p class="text-[17px] ">
+          A comprehensive tool for precise risk adjustment scoring
+        </p>
+      </div>
+ 
+      <!-- Main Content Cards -->
+      <div class="grid gap-8 max-w-6xl mx-auto">
+        <!-- What is RAF Card -->
+        <div class="bg-white rounded-xl shadow-xl p-8 transform hover:scale-[1.02] transition-transform">
+          <h2 class="text-2xl font-bold text-indigo-600 mb-4">What is RAF?</h2>
+          <p class="text-gray-700 leading-relaxed">
+            The <strong>Risk Adjustment Factor (RAF)</strong> is a sophisticated scoring system that evaluates patient risk based on
+            <strong>ICD-10 diagnosis codes, demographic factors, and HCC mappings</strong>. This score is fundamental in
+            <strong>Medicare Advantage and risk-adjusted payment models</strong>, enabling accurate healthcare cost predictions
+            and fair payment allocation.
+          </p>
+        </div>
+ 
+        <!-- How It Works Card -->
+        <div class="bg-white rounded-xl shadow-xl p-8 transform hover:scale-[1.02] transition-transform">
+          <h2 class="text-2xl font-bold text-indigo-600 mb-4">How Does It Work?</h2>
+          <div class="space-y-4">
+            <p class="text-gray-700">The RAF Calculator employs a systematic approach:</p>
+            <ol class="list-decimal list-inside space-y-3 text-gray-700">
+              <li class="pl-4">Input <strong>ICD-10 diagnosis codes</strong> into the system</li>
+              <li class="pl-4">Automatic mapping to <strong>Hierarchical Condition Categories (HCC)</strong></li>
+              <li class="pl-4">Complex <strong>RAF score computation</strong> incorporating demographic factors</li>
+              <li class="pl-4">Identification of <strong>potential coexisting conditions</strong> (≥70% probability)</li>
+              <li class="pl-4">Generation of comprehensive <strong>total RAF score</strong></li>
+            </ol>
+          </div>
+        </div>
+ 
+        <!-- Calculation Example Card -->
+        <div class="bg-white rounded-xl shadow-xl p-8 transform hover:scale-[1.02] transition-transform">
+          <h2 class="text-2xl font-bold text-indigo-600 mb-4">RAF Score Calculation</h2>
+          <div class="space-y-6">
+            <p class="text-gray-700">Total RAF score calculation formula:</p>
+            <div class="bg-indigo-50 p-4 rounded-lg text-center font-semibold text-indigo-700">
+              Total RAF = Σ (HCC RAF Scores) + Demographic Factors
+            </div>
+           
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="bg-indigo-600 text-white">
+                    <th class="px-6 py-4 text-left">Diagnosis Code</th>
+                    <th class="px-6 py-4 text-left">Description</th>
+                    <th class="px-6 py-4 text-left">HCC Code</th>
+                    <th class="px-6 py-4 text-left">RAF Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of exampleData" class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="px-6 py-4">{{item.diagnosisCode}}</td>
+                    <td class="px-6 py-4">{{item.description}}</td>
+                    <td class="px-6 py-4">{{item.hccCode}}</td>
+                    <td class="px-6 py-4">{{item.rafScore}}</td>
+                  </tr>
+                  <tr class="bg-indigo-50 font-semibold">
+                    <td colspan="3" class="px-6 py-4 text-right">Total RAF Score:</td>
+                    <td class="px-6 py-4">0.550</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- FAQ Section -->
+        <div class="bg-white rounded-xl shadow-xl p-8 transform hover:scale-[1.02] transition-transform">
+          <h2 class="text-2xl font-bold text-indigo-600 mb-6">Frequently Asked Questions</h2>
+          <div class="space-y-6">
+            <div *ngFor="let faq of [1,2,3]" class="border-b border-gray-200 last:border-0 pb-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">What is an HCC code?</h3>
+              <p class="text-gray-700">
+                An <strong>HCC (Hierarchical Condition Category)</strong> represents a grouping of diagnosis codes
+                sharing similar clinical complexities and resource utilization patterns.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- CTA Section -->
+      <div class="text-center mt-12">
+        <a href="/raf-score"
+            class="bg-[#6666CC] hover:bg-blue-900 text-white text-gray-900 font-bold py-4 px-8 rounded-lg
+            transform hover:scale-105 transition-all shadow-lg">
+            Get Started with RAF Calculator →
+        </a>
+      </div>
+    </div>
+  </div>
