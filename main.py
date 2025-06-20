@@ -38,29 +38,32 @@ def getPlansByZipCodes(zipcode:str):
  
 @app.post("/api/validate-zip")
 async def validate_zip(data: ZipCodeRequest):
-    plan_list=[ key for key,value in getPlansByZipCodes(data.zip_code.strip()).items() if value=="Yes"]
-    if data.gender != "Female":
-        if "SCAN Inspired" in plan_list:
-            plan_list.remove("SCAN Inspired")
-    if data.gender != "Others":
-        if "SCAN Affirm" in plan_list:
-            plan_list.remove("SCAN Affirm")
-    return plan_list
-    # zip_code = data.zip_code.strip()
-    # if zip_code in zip_set:
-    #     return {
-    #         "zip_code": zip_code,
-    #         "valid": True,
-    #         "message": "ZIP code is valid."
-    #     }
-    # else:
-    #     return {
-    #         "zip_code": zip_code,
-    #         "valid": False,
-    #         "message": "ZIP code not found."
-    #     }
- 
- 
+    plans = [key for key, value in getPlansByZipCodes(data.zip_code.strip()).items() if value == "Yes"]
+
+    if data.gender != "Female" and "SCAN Inspired" in plans:
+        plans.remove("SCAN Inspired")
+    if data.gender != "Others" and "SCAN Affirm" in plans:
+        plans.remove("SCAN Affirm")
+
+    if plans:
+        return {
+            "response": {
+                "message": "ZIP code is valid."
+            },
+            "data": {
+                "plans": plans
+            }
+        }
+    else:
+        return {
+            "response": {
+                "message": "ZIP code not found or no matching plans available."
+            },
+            "data": {
+                "plans": []
+            }
+        }
+
 @app.get("/")
 async def root():
     return {"message": "ZIP Code Validator API is running", "status": "healthy"}
