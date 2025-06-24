@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,Field
-import pandas as pd
+from pydantic import BaseModel, Field
 from typing import Literal
+import pandas as pd
 import os
  
 PORT = int(os.environ.get("PORT", 5000))
@@ -18,63 +18,87 @@ app.add_middleware(
     allow_headers=["*"],
 )
  
-# Load ZIP codes on startup
-# ZIP_FILE_PATH = "uszips.csv"
+# Load ZIP code data
 ZIP_FILE_PATH = "Zipcodes.csv"
-# zip_data = pd.read_csv(ZIP_FILE_PATH, dtype={"zip": str})
-# zip_set = set(zip_data["zip"].astype(str))
-df=pd.read_csv(ZIP_FILE_PATH)
+df = pd.read_csv(ZIP_FILE_PATH)
  
-class ZipCodeRequest(BaseModel):
+# --- Models ---
+class ZipCodeOnlyRequest(BaseModel):
     zip_code: str
-    gender:Literal["Male","Female","Others"]=Field(default="M")
  
+class ZipCodeWithGenderRequest(BaseModel):
+    zip_code: str
+    gender: Literal["Male", "Female", "Others"] = Field(default="Male")
  
-def getPlansByZipCodes(zipcode:str):
+# --- Utility Function ---
+def getPlansByZipCode(zipcode: str):
     try:
-        return df[df["ZIP Code"]==int(zipcode)].iloc[0].to_dict()
-    except (IndexError,Exception) as e:
+        return df[df["ZIP Code"] == int(zipcode)].iloc[0].to_dict()
+    except (IndexError, Exception):
         return {}
  
+# --- Endpoints ---
+ 
+# Step 1: ZIP Validation Only
 @app.post("/api/validate-zip")
-async def validate_zip(data: ZipCodeRequest):
-    plans = [key for key, value in getPlansByZipCodes(data.zip_code.strip()).items() if value == "Yes"]
-
-    if data.gender != "Female" and "SCAN Inspired" in plans:
-        plans.remove("SCAN Inspired")
-    if data.gender != "Others" and "SCAN Affirm" in plans:
-        plans.remove("SCAN Affirm")
-
-    if plans:
+async def validate_zip(data: ZipCodeOnlyRequest):
+    plans_data = getPlansByZipCode(data.zip_code.strip())
+    if plans_data:
         return {
             "response": {
                 "message": "ZIP code is valid."
-            },
-            "data": {
-                "plans": plans
             }
         }
     else:
         return {
             "response": {
-                "message": "ZIP code not found or no matching plans available."
+                "message": "ZIP code not found."
+            }
+        }
+ 
+# Step 2: ZIP + Gender-Based Plan Retrieval
+@app.post("/api/get-plans")
+async def get_plans(data: ZipCodeWithGenderRequest):
+    plans_data = getPlansByZipCode(data.zip_code.strip())
+   
+    if not plans_data:
+        return {
+            "response": {
+                "message": "ZIP code not found."
             },
             "data": {
                 "plans": []
             }
         }
-
+ 
+    # Filter plan names that are "Yes"
+    plans = [key for key, value in plans_data.items() if value == "Yes"]
+ 
+    # Apply gender-based filtering
+    if data.gender != "Female" and "SCAN Inspired" in plans:
+        plans.remove("SCAN Inspired")
+    if data.gender != "Others" and "SCAN Affirm" in plans:
+        plans.remove("SCAN Affirm")
+ 
+    return {
+        "response": {
+            "message": "Plans retrieved successfully."
+        },
+        "data": {
+            "plans": plans
+        }
+    }
+ 
 @app.get("/")
 async def root():
     return {"message": "ZIP Code Validator API is running", "status": "healthy"}
  
- 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "ZIP Code Validator API"}
-
-
+ 
+# Entry point
 if __name__ == "__main__":
     import uvicorn
     print(f"FastAPI ZIP Code Validator API is running on port {PORT}")
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host="127.0.0.1", port=PORT)
